@@ -1,13 +1,23 @@
+from dotenv import load_dotenv
+load_dotenv()
+import amphora_client
+from amphora_client.rest import ApiException
+from amphora_client.configuration import Configuration
+
 import requests
 import json
 from xml.dom import minidom
 from xml.dom.minidom import Document
 import xml.etree.ElementTree as ET
+import time
+import os
 
 def jprint(obj):
     # print a formatted string of the Python JSON object
     text = json.dumps(obj, sort_keys=True, indent=4)
     print(text)
+
+#get list of reports from MLA API
 '''
 response = requests.get("http://statistics.mla.com.au/ReportApi/GetReportList")
 report_details = response.json()['ReturnValue']
@@ -25,16 +35,16 @@ for report in report_details:
 '''
 
 
-
-
-
-
 report_name = "Australia - EYCI and ESTLI - Daily"
 Guid_dict = {}
 response = requests.get("http://statistics.mla.com.au/ReportApi/GetReportList")
 report_details = response.json()['ReturnValue']
+
 #check that the get request worked
-print(response.status_code)
+if response.status_code != 200:
+    print("Exception when accessing MLA website")
+else:
+    print("MLA website access successful")
 
 #make dictionary of Guids with names of reports
 for report in report_details:
@@ -63,10 +73,42 @@ for i in range(4):
 for child in calroot:
     EYCIroot = child
     #print(child.attrib.get('CalendarDate'))
+    #access node with required data
     for i in range(4):
         EYCIroot = EYCIroot[0]
+    # attribute will be of None type if no indo is present
     if (type(EYCIroot.attrib.get('ConvertedData')) == str):
         EYCI_dict[child.attrib.get('CalendarDate')] = EYCIroot.attrib.get('ConvertedData')
 
 for key,value in EYCI_dict.items():
     print(key, value)
+
+#upload to Amphora website
+'''
+configuration = Configuration()
+auth_api = amphora_client.AuthenticationApi(amphora_client.ApiClient(configuration))
+token_request = amphora_client.TokenRequest(username=os.getenv('username'), password=os.getenv('password') )
+
+try:
+    # Gets a token
+    res = auth_api.authentication_request_token(token_request = token_request)
+    configuration.api_key["Authorization"] = "Bearer " + res
+    # create an instance of the Users API, now with Bearer token
+    users_api = amphora_client.UsersApi(amphora_client.ApiClient(configuration))
+    me = users_api.users_read_self()
+    print(me)
+except ApiException as e:
+    print("Exception when calling AuthenticationAPI: %s\n" % e)
+
+amphora_api = amphora_client.AmphoraeApi(amphora_client.ApiClient(configuration))
+
+try:
+    if (isup_status):
+        s = {'isup': 1}
+    else:
+        s = {'isup': 0}
+    amphora_api.amphorae_upload_signal(id, request_body=s)
+except ApiException as e:
+    print("Exception when calling AmphoraeApi: %s\n" % e)
+
+'''
