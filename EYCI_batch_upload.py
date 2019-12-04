@@ -12,6 +12,28 @@ import time
 import os
 
 
+def jprint(obj):
+    # print a formatted string of the Python JSON object
+    text = json.dumps(obj, sort_keys=True, indent=4)
+    print(text)
+
+
+#get list of reports from MLA API
+# response = requests.get("http://statistics.mla.com.au/ReportApi/GetReportList")
+# report_details = response.json()['ReturnValue']
+# print(response.status_code)
+# #jprint(report_details)
+#
+# for report in report_details:
+#     print("Name: " + report['Name'] + ", GUid: " + report["ReportGuid"])
+#
+#     parameters = report['Parameters']
+#     paramstr = 'Parameters: '
+#     for parameter in parameters:
+#         paramstr += ', ' + parameter['ParameterName']
+#     print(paramstr)
+
+
 
 report_name = "Australia - EYCI and ESTLI - Daily"
 id = "200deaa4-6a96-4fe6-b67b-2f4c99aee8c5"
