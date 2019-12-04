@@ -4,17 +4,20 @@ import amphora_client
 from amphora_client.rest import ApiException
 from amphora_client.configuration import Configuration
 import requests
-import json
-from xml.dom import minidom
-from xml.dom.minidom import Document
 import xml.etree.ElementTree as ET
 import time
 import os
+import datetime
 
-
-
-report_name = "Australia - EYCI and ESTLI - Daily"
 id = "200deaa4-6a96-4fe6-b67b-2f4c99aee8c5"
+
+#turn date to string formatted so that the MLA API accepts
+def d_to_string(d):
+    datestring = '{:02d}'.format(d.day) + '%2F' + '{:02d}'.format(d.month) + '%2F' + '{:02d}'.format(d.year)
+    return datestring
+
+#get report details from MLA API
+report_name = "Australia - EYCI and ESTLI - Daily"
 Guid_dict = {}
 response = requests.get("http://statistics.mla.com.au/ReportApi/GetReportList")
 report_details = response.json()['ReturnValue']
@@ -29,35 +32,38 @@ else:
 for report in report_details:
     Guid_dict[report['Name']] = report["ReportGuid"]
 
+#set date range to upload, starting from current day
+DATE_RANGE = 3
+today = datetime.date.today()
+start_date = today - datetime.timedelta(days=DATE_RANGE)
+
 #get the return value xml text from the API
 Base_URL = "http://statistics.mla.com.au/ReportApi/RunReport"
-Query_String = "?ReportGuid=" + Guid_dict[report_name] + "&FromDate=" + "01%2F01%2F2019" + "&ToDate=" + "03%2F12%2F2019"
+Query_String = "?ReportGuid=" + Guid_dict[report_name] + "&FromDate=" + \
+    d_to_string(start_date) + "&ToDate=" + d_to_string(today)
 response = requests.get(Base_URL + Query_String)
 return_value = response.json()['ReturnValue']
 
-#make xml doc object and make pretty
-xmldoc = minidom.parseString(return_value)
-pretty_xml_as_string = xmldoc.toprettyxml()
-#print(pretty_xml_as_string)
-
 #make element tree from xml string
 root = ET.fromstring(return_value)
-calroot = root
 EYCI_dict = {}
 
-#get calendar date collection node
-for i in range(4):
-    calroot = calroot[0]
-for child in calroot:
-    EYCIroot = child
-    #print(child.attrib.get('CalendarDate'))
-    #access node with required data
+try:
+    #get calendar date collection node
+    calroot = root
     for i in range(4):
-        EYCIroot = EYCIroot[0]
-    # attribute will be of None type if no indo is present
-    if (type(EYCIroot.attrib.get('ConvertedData')) == str):
-        EYCI_dict[child.attrib.get('CalendarDate').replace('T', ' ')] = EYCIroot.attrib.get('ConvertedData')
-
+        calroot = calroot[0]
+    for child in calroot:
+        EYCIroot = child
+        #access node with required data
+        for i in range(4):
+            EYCIroot = EYCIroot[0]
+        # attribute will be of None type if no info is present
+        if (type(EYCIroot.attrib.get('ConvertedData')) == str):
+            EYCI_dict[child.attrib.get('CalendarDate').replace('T', ' ')] = EYCIroot.attrib.get('ConvertedData')
+except Exception as e:
+    print("no data entries")
+    exit()
 
 for key,value in EYCI_dict.items():
     print(key, value)
@@ -74,7 +80,6 @@ try:
     # create an instance of the Users API, now with Bearer token
     users_api = amphora_client.UsersApi(amphora_client.ApiClient(configuration))
     me = users_api.users_read_self()
-    print(me)
 except ApiException as e:
     print("Exception when calling AuthenticationAPI: %s\n" % e)
 
@@ -86,7 +91,7 @@ try:
     for key,value in EYCI_dict.items():
         s = {'t': key, 'price': float(value)}
         signals.append(s)
-    print(signals)
+
     amphora_api.amphorae_upload_signal_batch(id, request_body = signals)
 except ApiException as e:
     print("Exception when calling AmphoraeApi: %s\n" % e)

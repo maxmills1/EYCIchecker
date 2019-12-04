@@ -76,7 +76,7 @@ for child in calroot:
     #access node with required data
     for i in range(4):
         EYCIroot = EYCIroot[0]
-    # attribute will be of None type if no indo is present
+    # attribute will be of None type if no info is present
     if (type(EYCIroot.attrib.get('ConvertedData')) == str):
         EYCI_dict[child.attrib.get('CalendarDate').replace('T', ' ')] = EYCIroot.attrib.get('ConvertedData')
 
