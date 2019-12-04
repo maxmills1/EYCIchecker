@@ -85,6 +85,7 @@ except ApiException as e:
 
 amphora_api = amphora_client.AmphoraeApi(amphora_client.ApiClient(configuration))
 
+#list of dictionaries with signal values
 signals = []
 
 try:
