@@ -3,7 +3,6 @@ load_dotenv()
 import amphora_client
 from amphora_client.rest import ApiException
 from amphora_client.configuration import Configuration
-
 import requests
 import json
 from xml.dom import minidom
@@ -12,30 +11,32 @@ import xml.etree.ElementTree as ET
 import time
 import os
 
+
 def jprint(obj):
     # print a formatted string of the Python JSON object
     text = json.dumps(obj, sort_keys=True, indent=4)
     print(text)
 
+
 #get list of reports from MLA API
-'''
-response = requests.get("http://statistics.mla.com.au/ReportApi/GetReportList")
-report_details = response.json()['ReturnValue']
-print(response.status_code)
-#jprint(report_details)
+# response = requests.get("http://statistics.mla.com.au/ReportApi/GetReportList")
+# report_details = response.json()['ReturnValue']
+# print(response.status_code)
+# #jprint(report_details)
+#
+# for report in report_details:
+#     print("Name: " + report['Name'] + ", GUid: " + report["ReportGuid"])
+#
+#     parameters = report['Parameters']
+#     paramstr = 'Parameters: '
+#     for parameter in parameters:
+#         paramstr += ', ' + parameter['ParameterName']
+#     print(paramstr)
 
-for report in report_details:
-    print("Name: " + report['Name'] + ", GUid: " + report["ReportGuid"])
-
-    parameters = report['Parameters']
-    paramstr = 'Parameters: '
-    for parameter in parameters:
-        paramstr += ', ' + parameter['ParameterName']
-    print(paramstr)
-'''
 
 
 report_name = "Australia - EYCI and ESTLI - Daily"
+id = "200deaa4-6a96-4fe6-b67b-2f4c99aee8c5"
 Guid_dict = {}
 response = requests.get("http://statistics.mla.com.au/ReportApi/GetReportList")
 report_details = response.json()['ReturnValue']
@@ -64,7 +65,6 @@ pretty_xml_as_string = xmldoc.toprettyxml()
 #make element tree from xml string
 root = ET.fromstring(return_value)
 calroot = root
-
 EYCI_dict = {}
 
 #get calendar date collection node
@@ -80,14 +80,15 @@ for child in calroot:
     if (type(EYCIroot.attrib.get('ConvertedData')) == str):
         EYCI_dict[child.attrib.get('CalendarDate')] = EYCIroot.attrib.get('ConvertedData')
 
+
 for key,value in EYCI_dict.items():
     print(key, value)
 
+
 #upload to Amphora website
-'''
 configuration = Configuration()
 auth_api = amphora_client.AuthenticationApi(amphora_client.ApiClient(configuration))
-token_request = amphora_client.TokenRequest(username=os.getenv('username'), password=os.getenv('password') )
+token_request = amphora_client.TokenRequest(username=os.getenv('username'), password=os.getenv('password'))
 
 try:
     # Gets a token
@@ -103,12 +104,11 @@ except ApiException as e:
 amphora_api = amphora_client.AmphoraeApi(amphora_client.ApiClient(configuration))
 
 try:
-    if (isup_status):
-        s = {'isup': 1}
-    else:
-        s = {'isup': 0}
+    for key,value in EYCI_dict.items():
+        s = {'t': key, 'price': float(value)}
+
+        break
+    print(s)
     amphora_api.amphorae_upload_signal(id, request_body=s)
 except ApiException as e:
     print("Exception when calling AmphoraeApi: %s\n" % e)
-
-'''
