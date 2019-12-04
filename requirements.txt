@@ -1,0 +1,4 @@
+
+amphoradata
+requests
+python-dotenv
