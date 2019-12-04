@@ -28,4 +28,4 @@ jobs:
         username: ${{ secrets.username }}
         password: ${{ secrets.password }}
       run: |
-        EYCI_checker.py
+        python EYCI_checker.py
