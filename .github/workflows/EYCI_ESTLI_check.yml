@@ -28,4 +28,4 @@ jobs:
         username: ${{ secrets.username }}
         password: ${{ secrets.password }}
       run: |
-        python EYCI_ESTLI__checker.py
+        python EYCI_ESTLI_checker.py
