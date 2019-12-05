@@ -23,9 +23,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-    - name: Run EYCI_checker.py
+    - name: Run EYCI_ESTLI_checker.py
       env:
         username: ${{ secrets.username }}
         password: ${{ secrets.password }}
       run: |
-        python EYCI_checker.py
+        python EYCI_ESTLI__checker.py
