@@ -33,10 +33,12 @@ def jprint(obj):
 #         paramstr += ', ' + parameter['ParameterName']
 #     print(paramstr)
 
+D_steers_id = "152f2e2a-ff0a-41d9-ad0e-61f3b25e0248"
+D_heifers_id = "39b611f2-0e28-4eac-a2a8-da38f9100894"
+T_steers_id = "673e043d-8921-4879-a500-4463d57f2767"
+T_heifers_id = "61f7f692-8c4e-4abd-a365-4a8d08efd79f"
 
-
-report_name = "Australia - EYCI and ESTLI - Daily"
-id = "1bd74490-ccf6-43d1-99f1-ef53f60c293c"
+report_name = "Australia - Live export cattle prices - Weekly"
 Guid_dict = {}
 response = requests.get("http://statistics.mla.com.au/ReportApi/GetReportList")
 report_details = response.json()['ReturnValue']
@@ -57,34 +59,61 @@ Query_String = "?ReportGuid=" + Guid_dict[report_name] + "&FromDate=" + "01%2F01
 response = requests.get(Base_URL + Query_String)
 return_value = response.json()['ReturnValue']
 
-
 #make xml doc object and make pretty
 xmldoc = minidom.parseString(return_value)
 pretty_xml_as_string = xmldoc.toprettyxml()
-#print(pretty_xml_as_string)
+print(pretty_xml_as_string)
+
+
+D_steers_dict = dict()
+D_heifers_dict = dict()
+T_steers_dict = dict()
+T_heifers_dict = dict()
 
 #make element tree from xml string
 root = ET.fromstring(return_value)
 calroot = root
-EYCI_dict = {}
 
 #get calendar date collection node
 for i in range(4):
     calroot = calroot[0]
+
 for child in calroot:
-    EYCIroot = child
-    #print(child.attrib.get('CalendarDate'))
+    collection_node = child
+    date = child.attrib.get('CalendarMonth').replace('T', ' ')
+    print(date)
     #access node with required data
-    for i in range(4):
-        EYCIroot = EYCIroot[0]
-        #on 4th iteration index [1] for ESTLI
-    # attribute will be of None type if no info is present
-    if (type(EYCIroot.attrib.get('ConvertedData')) == str):
-        EYCI_dict[child.attrib.get('CalendarDate').replace('T', ' ')] = EYCIroot.attrib.get('ConvertedData')
+    for i in range(5):
+        collection_node = collection_node[0]
+    #reached nodes of orign cities
+    for city in collection_node:
+        #Api contains no data for Broome so skip to Tville & Dwin
+        if city.get('AttributeName5') == "Broome":
+            continue
+        type_node = city[0]
+        #find data for each type of cow
+        for cow_type in type_node:
+            data = cow_type[0][1].get('ConvertedData')
 
 
-for key,value in EYCI_dict.items():
-    print(key, value)
+            # attribute will be of None type if no info is present
+            if (type(data) != str):
+                continue
+
+            #put the data into the corresponding dicts
+            if city.get('AttributeName5') == "Darwin":
+                if cow_type.get('AttributeName3') == "Steer":
+                    D_steers_dict[date] = data
+                elif cow_type.get('AttributeName3') == "Heifer":
+                    D_heifers_dict[date] = data
+            elif city.get('AttributeName5') == "Townsville":
+                if cow_type.get('AttributeName3') == "Steer":
+                    T_steers_dict[date] = data
+                elif cow_type.get('AttributeName3') == "Heifer":
+                    T_heifers_dict[date] = data
+
+dict_list = [D_heifers_dict, D_steers_dict, T_heifers_dict, T_steers_dict]
+
 
 #upload data to amphora data website
 configuration = Configuration()
@@ -104,13 +133,54 @@ except ApiException as e:
 
 amphora_api = amphora_client.AmphoraeApi(amphora_client.ApiClient(configuration))
 
-signals = []
 
+
+
+#for darwin heifers
+signals = []
 try:
-    for key,value in EYCI_dict.items():
+    for key,value in D_heifers_dict.items():
         s = {'t': key, 'price': float(value)}
         signals.append(s)
     print(signals)
-    amphora_api.amphorae_upload_signal_batch(id, request_body = signals)
+    amphora_api.amphorae_upload_signal_batch(D_heifers_id, request_body = signals)
+except ApiException as e:
+    print("Exception when calling AmphoraeApi: %s\n" % e)
+
+
+#for Darwin steers
+signals = []
+try:
+    for key,value in D_steers_dict.items():
+        s = {'t': key, 'price': float(value)}
+        signals.append(s)
+    print(signals)
+    amphora_api.amphorae_upload_signal_batch(D_steers_id, request_body = signals)
+except ApiException as e:
+    print("Exception when calling AmphoraeApi: %s\n" % e)
+
+
+
+#for Tville heifers
+signals = []
+try:
+    for key,value in T_heifers_dict.items():
+        s = {'t': key, 'price': float(value)}
+        signals.append(s)
+    print(signals)
+    amphora_api.amphorae_upload_signal_batch(T_heifers_id, request_body = signals)
+except ApiException as e:
+    print("Exception when calling AmphoraeApi: %s\n" % e)
+
+
+
+#for Tville steers
+signals = []
+try:
+    for key,value in T_steers_dict.items():
+        s = {'t': key, 'price': float(value)}
+        signals.append(s)
+    print(signals)
+    amphora_api.amphorae_upload_signal_batch(T_steers_id, request_body = signals)
 except ApiException as e:
     print("Exception when calling AmphoraeApi: %s\n" % e)
