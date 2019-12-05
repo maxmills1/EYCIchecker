@@ -9,6 +9,7 @@ from xml.dom import minidom
 from xml.dom.minidom import Document
 import xml.etree.ElementTree as ET
 import time
+import datetime
 import os
 
 
@@ -17,21 +18,11 @@ def jprint(obj):
     text = json.dumps(obj, sort_keys=True, indent=4)
     print(text)
 
+#turn date to string formatted so that the MLA API accepts
+def d_to_string(d):
+    datestring = '{:02d}'.format(d.day) + '%2F' + '{:02d}'.format(d.month) + '%2F' + '{:02d}'.format(d.year)
+    return datestring
 
-#get list of reports from MLA API
-# response = requests.get("http://statistics.mla.com.au/ReportApi/GetReportList")
-# report_details = response.json()['ReturnValue']
-# print(response.status_code)
-# #jprint(report_details)
-#
-# for report in report_details:
-#     print("Name: " + report['Name'] + ", GUid: " + report["ReportGuid"])
-#
-#     parameters = report['Parameters']
-#     paramstr = 'Parameters: '
-#     for parameter in parameters:
-#         paramstr += ', ' + parameter['ParameterName']
-#     print(paramstr)
 
 report_name = "Australia - Live export cattle prices - Weekly"
 Guid_dict = {}
@@ -48,17 +39,22 @@ else:
 for report in report_details:
     Guid_dict[report['Name']] = report["ReportGuid"]
 
+#set date range to upload, starting from current day
+DATE_RANGE = 21 #21 as report is weekly
+today = datetime.date.today()
+start_date = today - datetime.timedelta(days=DATE_RANGE)
+
 #get the return value xml text from the API
 Base_URL = "http://statistics.mla.com.au/ReportApi/RunReport"
-Query_String = "?ReportGuid=" + Guid_dict[report_name] + "&FromDate=" + "01%2F01%2F2019" + "&ToDate=" + "03%2F12%2F2019"
+Query_String = "?ReportGuid=" + Guid_dict[report_name] + "&FromDate=" + \
+    d_to_string(start_date) + "&ToDate=" + d_to_string(today)
 response = requests.get(Base_URL + Query_String)
 return_value = response.json()['ReturnValue']
 
-#make xml doc object and make pretty
-xmldoc = minidom.parseString(return_value)
-pretty_xml_as_string = xmldoc.toprettyxml()
-print(pretty_xml_as_string)
-
+# #make xml doc object and make pretty
+# xmldoc = minidom.parseString(return_value)
+# pretty_xml_as_string = xmldoc.toprettyxml()
+# print(pretty_xml_as_string)
 
 D_steers_dict = dict()
 D_heifers_dict = dict()
