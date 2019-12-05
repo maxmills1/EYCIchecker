@@ -9,7 +9,8 @@ import time
 import os
 import datetime
 
-id = "1bd74490-ccf6-43d1-99f1-ef53f60c293c"
+EYCI_id = "1bd74490-ccf6-43d1-99f1-ef53f60c293c"
+ESTLI_id = "35f32a02-5abf-417b-a8ec-40dc7ac3ff7d"
 
 #turn date to string formatted so that the MLA API accepts
 def d_to_string(d):
@@ -47,6 +48,7 @@ return_value = response.json()['ReturnValue']
 #make element tree from xml string
 root = ET.fromstring(return_value)
 EYCI_dict = {}
+ESTLI_dict = {}
 
 try:
     #get calendar date collection node
@@ -54,18 +56,25 @@ try:
     for i in range(4):
         calroot = calroot[0]
     for child in calroot:
-        EYCIroot = child
+        jointroot = child
         #access node with required data
-        for i in range(4):
-            EYCIroot = EYCIroot[0]
+        for i in range(3):
+            jointroot = jointroot[0]
+        ESTLIroot = jointroot[1]
+        EYCIroot = jointroot[0]
         # attribute will be of None type if no info is present
         if (type(EYCIroot.attrib.get('ConvertedData')) == str):
             EYCI_dict[child.attrib.get('CalendarDate').replace('T', ' ')] = EYCIroot.attrib.get('ConvertedData')
+        if (type(ESTLIroot.attrib.get('ConvertedData')) == str):
+            ESTLI_dict[child.attrib.get('CalendarDate').replace('T', ' ')] = ESTLIroot.attrib.get('ConvertedData')
 except Exception as e:
     print("no data entries")
     exit()
 
 for key,value in EYCI_dict.items():
+    print(key, value)
+
+for key,value in ESTLI_dict.items():
     print(key, value)
 
 #upload data to amphora data website
@@ -86,13 +95,18 @@ except ApiException as e:
 amphora_api = amphora_client.AmphoraeApi(amphora_client.ApiClient(configuration))
 
 #list of dictionaries with signal values
-signals = []
+EYCI_signals = []
+ESTLI_signals = []
 
 try:
     for key,value in EYCI_dict.items():
         s = {'t': key, 'price': float(value)}
-        signals.append(s)
+        EYCI_signals.append(s)
+    for key,value in ESTLI_dict.items():
+        s = {'t': key, 'price': float(value)}
+        ESTLI_signals.append(s)
 
-    amphora_api.amphorae_upload_signal_batch(id, request_body = signals)
+    amphora_api.amphorae_upload_signal_batch(EYCI_id, request_body = EYCI_signals)
+    amphora_api.amphorae_upload_signal_batch(ESTLI_id, request_body = ESTLI_signals)
 except ApiException as e:
     print("Exception when calling AmphoraeApi: %s\n" % e)

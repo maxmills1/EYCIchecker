@@ -36,7 +36,7 @@ def jprint(obj):
 
 
 report_name = "Australia - EYCI and ESTLI - Daily"
-id = "200deaa4-6a96-4fe6-b67b-2f4c99aee8c5"
+id = "1bd74490-ccf6-43d1-99f1-ef53f60c293c"
 Guid_dict = {}
 response = requests.get("http://statistics.mla.com.au/ReportApi/GetReportList")
 report_details = response.json()['ReturnValue']
@@ -56,6 +56,7 @@ Base_URL = "http://statistics.mla.com.au/ReportApi/RunReport"
 Query_String = "?ReportGuid=" + Guid_dict[report_name] + "&FromDate=" + "01%2F01%2F2019" + "&ToDate=" + "03%2F12%2F2019"
 response = requests.get(Base_URL + Query_String)
 return_value = response.json()['ReturnValue']
+
 
 #make xml doc object and make pretty
 xmldoc = minidom.parseString(return_value)
