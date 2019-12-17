@@ -1,1 +1,0 @@
-from amphora_client.configuration import Configuration
