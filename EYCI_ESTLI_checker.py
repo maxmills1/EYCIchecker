@@ -3,7 +3,6 @@ load_dotenv()
 import amphora_client
 from amphora_client.rest import ApiException
 from amphora_client.configuration import Configuration
-import requests
 import os
 from src.MLA import *
 

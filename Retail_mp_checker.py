@@ -19,16 +19,7 @@ import xml.etree.ElementTree as ET
 import time
 import datetime
 import os
-
-def jprint(obj):
-    # print a formatted string of the Python JSON object
-    text = json.dumps(obj, sort_keys=True, indent=4)
-    print(text)
-
-#turn date to string formatted so that the MLA API accepts
-def d_to_string(d):
-    datestring = '{:02d}'.format(d.day) + '%2F' + '{:02d}'.format(d.month) + '%2F' + '{:02d}'.format(d.year)
-    return datestring
+from src.MLA import *
 
 report_name = "Australia - Retail meat prices - Quarterly"
 Guid_dict = {}

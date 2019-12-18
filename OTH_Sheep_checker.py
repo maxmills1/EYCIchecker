@@ -3,13 +3,6 @@ load_dotenv()
 import amphora_client
 from amphora_client.rest import ApiException
 from amphora_client.configuration import Configuration
-import requests
-import json
-from xml.dom import minidom
-from xml.dom.minidom import Document
-import xml.etree.ElementTree as ET
-import time
-import datetime
 import os
 from src.MLA import *
 
