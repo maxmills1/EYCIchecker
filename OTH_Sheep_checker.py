@@ -11,94 +11,14 @@ import xml.etree.ElementTree as ET
 import time
 import datetime
 import os
-
-def jprint(obj):
-    # print a formatted string of the Python JSON object
-    text = json.dumps(obj, sort_keys=True, indent=4)
-    print(text)
-
-#turn date to string formatted so that the MLA API accepts
-def d_to_string(d):
-    datestring = '{:02d}'.format(d.day) + '%2F' + '{:02d}'.format(d.month) + '%2F' + '{:02d}'.format(d.year)
-    return datestring
-
-report_name = "Australia - OTH lamb indicators - National - Weekly"
-Guid_dict = {}
-response = requests.get("http://statistics.mla.com.au/ReportApi/GetReportList")
-report_details = response.json()['ReturnValue']
-
-#check that the get request worked
-if response.status_code != 200:
-    print("Exception when accessing MLA website")
-else:
-    print("MLA website access successful")
-
-#make dictionary of Guids with names of reports
-for report in report_details:
-    Guid_dict[report['Name']] = report["ReportGuid"]
-
-#set date range to upload, starting from current day
-DATE_RANGE = 21 #21 as report is weekly
-today = datetime.date.today()
-start_date = today - datetime.timedelta(days=DATE_RANGE)
-
-#get the return value xml text from the API
-Base_URL = "http://statistics.mla.com.au/ReportApi/RunReport"
-Query_String = "?ReportGuid=" + Guid_dict[report_name] + "&FromDate=" + \
-    d_to_string(start_date) + "&ToDate=" + d_to_string(today)
-response = requests.get(Base_URL + Query_String)
-return_value = response.json()['ReturnValue']
-
-# #make xml doc object and make pretty
-# xmldoc = minidom.parseString(return_value)
-# pretty_xml_as_string = xmldoc.toprettyxml()
-# print(pretty_xml_as_string)
-
-L_lamb_dict = dict()
-M_T_lamb_dict = dict()
-H_T_lamb_dict = dict()
-H_lamb_dict = dict()
+from src.MLA import *
 
 L_lamb_id = "fdf6cc1a-c2bc-4d22-a013-f697e6e16771"
 M_T_lamb_id = "f8ea22f4-b08e-46e3-abb4-8721478b9f94"
 H_T_lamb_id = "5fa13614-ac5a-4af7-a908-c6f8414f4b26"
 H_lamb_id = "d4975810-85e7-44e3-998f-a69438f4ea49"
 
-#make element tree from xml string
-root = ET.fromstring(return_value)
-calroot = root
-
-#get calendar date collection node
-for i in range(4):
-    calroot = calroot[0]
-
-for child in calroot:
-    collection_node = child
-    date = child.attrib.get('CalendarWeek').replace('T', ' ')
-    print(date)
-    #access node with required data
-    for i in range(3):
-        collection_node = collection_node[0]
-    #reached nodes of orign cities
-    for sheep_type in collection_node:
-        type_name = sheep_type.get('AttributeName3')
-        data = sheep_type[0][0].get('ConvertedData')
-
-        # attribute will be of None type if no info is present
-        if (type(data) != str):
-            continue
-
-        #put the data into the corresponding dicts
-        if type_name == "Light lamb":
-            L_lamb_dict[date] = data
-        if type_name == "Medium trade lamb":
-            M_T_lamb_dict[date] = data
-        if type_name == "Heavy trade lamb":
-            H_T_lamb_dict[date] = data
-        if type_name == "Heavy lamb":
-            H_lamb_dict[date] = data
-
-dict_list = [L_lamb_dict, M_T_lamb_dict, H_T_lamb_dict, H_lamb_dict]
+dict_list = get_OTH_Sheep_data()
 id_list = [L_lamb_id, M_T_lamb_id, H_T_lamb_id, H_lamb_id]
 
 #upload data to amphora data website
@@ -118,7 +38,6 @@ except ApiException as e:
     print("Exception when calling AuthenticationAPI: %s\n" % e)
 
 amphora_api = amphora_client.AmphoraeApi(amphora_client.ApiClient(configuration))
-
 
 for i in range(len(dict_list)):
     signals = []

@@ -23,12 +23,9 @@ We're going to be tracking the numeric temperature and rain probability forecast
 
 We're going to add the following properties:
 
-| Property Name   | Property Type | Weatherzone Property Name |
-|-----------------|---------------|---------------------------|
-| temperature     | numeric       | temperature               |
-| rain_prob       | numeric       | rain_prob                 |
-| prediction_time | string        | -                         |
-| description     | string        | icon_phrase               |
+| Property Name   | Property Type |
+|-----------------|---------------|
+| prices          | numeric       |
 
 You don't need to explicity add the `t` property (the timestamp property). This is included by default on every signal, and defaults to the current UTC time.
 
@@ -49,12 +46,6 @@ Now we've created an Amphora for our weather data, we can run the scripts in thi
 * `host` -> Amphora Data host. Probably `https://beta.amphoradata.com`
 
 ## Run the code.
-
-### Using docker compose
-
-```sh
-docker-compose run index
-```
 
 ### Using Python
 
