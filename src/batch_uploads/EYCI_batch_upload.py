@@ -53,7 +53,7 @@ for report in report_details:
 
 #get the return value xml text from the API
 Base_URL = "http://statistics.mla.com.au/ReportApi/RunReport"
-Query_String = "?ReportGuid=" + Guid_dict[report_name] + "&FromDate=" + "01%2F01%2F2019" + "&ToDate=" + "03%2F12%2F2019"
+Query_String = "?ReportGuid=" + Guid_dict[report_name] + "&FromDate=" + "01%2F01%2F2019" + "&ToDate=" + "22%2F01%2F2020"
 response = requests.get(Base_URL + Query_String)
 return_value = response.json()['ReturnValue']
 

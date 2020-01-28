@@ -55,7 +55,7 @@ def get_EYCI_ESTLI_data():
     report_name = "Australia - EYCI and ESTLI - Daily"
 
     #set date range to upload, starting from current day
-    DATE_RANGE = 37
+    DATE_RANGE = 10
 
     #get the return value xml text from the API
     query_string = get_query_string(DATE_RANGE, Guid_dict[report_name])
