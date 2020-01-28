@@ -55,7 +55,7 @@ def get_EYCI_ESTLI_data():
     report_name = "Australia - EYCI and ESTLI - Daily"
 
     #set date range to upload, starting from current day
-    DATE_RANGE = 3
+    DATE_RANGE = 37
 
     #get the return value xml text from the API
     query_string = get_query_string(DATE_RANGE, Guid_dict[report_name])
@@ -96,7 +96,7 @@ def get_EYCI_ESTLI_data():
 #-----------------------------------------------------------------------------#
 def get_OTH_Sheep_data():
     report_name = "Australia - OTH lamb indicators - National - Weekly"
-    DATE_RANGE = 21 #21 as report is weekly
+    DATE_RANGE = 29 #29 as report is weekly
 
     query_string = get_query_string(DATE_RANGE, Guid_dict[report_name])
     response = requests.get(Base_URL + query_string)
@@ -150,7 +150,7 @@ def get_Cattle_data():
     report_name = "Australia - Live export cattle prices - Weekly"
 
     #set date range to upload, starting from current day
-    DATE_RANGE = 21 #21 as report is weekly
+    DATE_RANGE = 29 #29 as report is weekly
 
     query_string = get_query_string(DATE_RANGE, Guid_dict[report_name])
     response = requests.get(Base_URL + query_string)

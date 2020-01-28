@@ -40,6 +40,7 @@ try:
         s = {'t': key, 'price': float(value)}
         ESTLI_signals.append(s)
 
+    print(EYCI_signals)
     amphora_api.amphorae_upload_signal_batch(EYCI_id, request_body = EYCI_signals)
     amphora_api.amphorae_upload_signal_batch(ESTLI_id, request_body = ESTLI_signals)
 except ApiException as e:
