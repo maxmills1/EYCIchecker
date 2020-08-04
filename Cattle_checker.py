@@ -1,8 +1,6 @@
 from dotenv import load_dotenv
 load_dotenv()
-import amphora_client
-from amphora_client.rest import ApiException
-from amphora_client.configuration import Configuration
+from amphora.client import AmphoraDataRepositoryClient, Credentials
 import os
 from src.MLA import *
 
@@ -15,9 +13,8 @@ dict_list = get_Cattle_data()
 id_list = [D_heifers_id, D_steers_id, T_heifers_id, T_steers_id]
 
 #upload data to amphora data website
-configuration = Configuration()
-auth_api = amphora_client.AuthenticationApi(amphora_client.ApiClient(configuration))
-token_request = amphora_client.TokenRequest(username=os.getenv('username'), password=os.getenv('password') )
+credentials = Credentials(username=os.getenv('username'), password=os.getenv('password'))
+client = AmphoraDataRepositoryClient(credentials)
 
 try:
     # Gets a token
